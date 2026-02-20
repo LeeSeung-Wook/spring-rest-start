@@ -7,6 +7,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import com.metacoding.springv2._core.util.JwtProvider;
 import com.metacoding.springv2._core.util.JwtUtil;
 import com.metacoding.springv2.user.User;
 
@@ -24,20 +25,13 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
         // localhost:8080/api/good
         // header -> Authorization : Bearer JWT토큰
 
-        String jwt = request.getHeader("Authorization");
+        String jwt = JwtProvider.토큰추출하기(request);
 
-        if (jwt == null) {
-            filterChain.doFilter(request, response);
-            return;
+        if (jwt != null) {
+            Authentication authentication = JwtProvider.인증객체만들기(jwt);
+
+            SecurityContextHolder.getContext().setAuthentication(authentication);
         }
-
-        jwt = jwt.replace("Bearer ", "");
-
-        User user = JwtUtil.verify(jwt);
-
-        Authentication authentication = new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
-
-        SecurityContextHolder.getContext().setAuthentication(authentication);
         filterChain.doFilter(request, response);
     }
 
